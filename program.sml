@@ -41,25 +41,22 @@ fun interp (exp, env) =
   | AST_SUCC                    => RES_SUCC 
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
-  | AST_IF (cond, trueExp, falseExp)   (*=> if interp(exp1,env) then interp(exp2,env) else interp(exp3,env);*)
-								=> let val v1 = interp (exp1, env)
-									in 
-									if v1 = RES_BOOL(true)
-										then interp (exp2, env)
-									else if v1 = RES_BOOL(false)
-										then interp (exp3, env)
-									else RES_ERROR "boolean error"
+  | AST_IF (exp1, exp2, exp3)   => let val v1 = interp (exp1, env)
+								   in 
+										if v1 = RES_BOOL(true)
+											then interp (exp2, env)
+										else if v1 = RES_BOOL(false)
+											then interp (exp3, env)
+										else RES_ERROR "boolean error"
 								   end
 											
   | AST_APP (exp1, exp2)        => RES_ERROR "Not yet implemented"
-  | AST_ID name                 => lookup_env(env, name)
- (* | AST_FUN  (var, exp)         => (*extend_env(env, var, (AST_NUM var))*) RES_ERROR "Not yet implemented"*)
- 
- (*) | AST_APP (exp1, exp2)        => let val r1 = interp(exp1,env)
+  (* | AST_APP (exp1, exp2)        => let val r1 = interp(exp1,env)
                                        val r2 = interp(exp2,env)
                                       in AST_APP(r1,r2)
-                                      end;             *)                       
-(*  | AST_ID name                 => lookup_env(env, name) *)
+                                      end; *)			  
+  | AST_ID name                 => lookup_env(env, name)
+ (* | AST_FUN  (var, exp)         => (*extend_env(env, var, (AST_NUM var))*) RES_ERROR "Not yet implemented"*)                     
 (*  | AST_FUN (var, exp)          => RES_FUN(var, exp) *)
 
 
