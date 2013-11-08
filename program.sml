@@ -41,15 +41,17 @@ fun interp (exp, env) =
   | AST_SUCC                    => RES_SUCC 
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
-  | AST_IF (exp1, exp2, exp3)   (*=> if interp(exp1,env) then interp(exp2,env) else interp(exp3,env);*)
-								=> if interp(exp1, env)
-										then interp(exp2,env)
-										else interp(exp3,env)
-                    | _ => raise RES_ERROR "if condition not bool"
-										
-  | AST_APP (exp1, exp2)        => RES_ERROR "Not yet implemented"
-  | AST_ID name                 => RES_ERROR "Not yet implemented"
-  | AST_FUN  (var, exp)         => RES_ERROR "Not yet implemented"
+  | AST_IF (exp1, exp2, exp3)   => let val v1 = interp (exp1, env)
+                                    in 
+                                    if v1 = RES_BOOL(true)
+                                      then interp (exp2, env)
+                                    else if v1 = RES_BOOL(false)
+                                     then interp (exp3, env)
+                                  else RES_ERROR "no boolean"
+                                end;
+ (* | AST_APP (exp1, exp2)        => RES_ERROR *)
+(*  | AST_ID name                 => lookup_env(env, name) *)
+(*  | AST_FUN (var, exp)          => extend_env(env, var, exp) *)
 
 (*  Once you have defined interp, you can try out simple examples by
       interp (parsestr "succ (succ 7)"), new_env());
