@@ -41,25 +41,35 @@ fun interp (exp, env) =
   | AST_SUCC                    => RES_SUCC 
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
-  | AST_IF (exp1, exp2, exp3)   (*=> if interp(exp1,env) then interp(exp2,env) else interp(exp3,env);*)
-<<<<<<< HEAD
-								=> let val r1 = interp(exp1, env)
-								   in
-										case r1 of 
-											AST_BOOL true => interp(exp2,env)
-											AST_BOOL false => interp(exp3,env)
-=======
-								=> if interp(exp1, env)
+  | AST_IF (cond, trueExp, falseExp)   (*=> if interp(exp1,env) then interp(exp2,env) else interp(exp3,env);*)
+								=> (*RES_ERROR "Not yet implemented"*)
+								(*=> if interp(exp1, env)
 										then interp(exp2,env)
-										else interp(exp3,env)
-                    | _ => raise RES_ERROR "if condition not bool"
->>>>>>> e259b2d69899af8401b56ed8a5961f7888b67562
+									else interp(exp3,env)
 										
+								 let val r1 = interp(exp1,env) 
+										val r2 = interp(exp2,env)
+										val r3 = interp(exp3,env)
+									in
+										interp(exp1,env)
+											then interp(exp2,env)
+										else interp(exp3,env)
+									end*)
+									
+								interp (AST_IF (cond, trueExp, falseExp)) =
+								let
+									fun interpIf (AST_BOOL true) trueExp falseExp = interp trueExp
+									  | interpIf (AST_BOOL false) trueExp falseExp = interp falseExp
+									  | interpIf (e as AST_ERROR s) _ _ = e
+									  | interpIf _ _ _ = AST_ERROR "if needs a boolean condition"
+								  in
+									interpIf (interp cond) trueExp falseExp
+								  end 
+
+											
   | AST_APP (exp1, exp2)        => RES_ERROR "Not yet implemented"
-  
-  
-  | AST_ID name                 => RES_ERROR "Not yet implemented"
-  | AST_FUN  (var, exp)         => RES_ERROR "Not yet implemented"
+  | AST_ID name                 => lookup_env(env, name)
+  | AST_FUN  (var, exp)         => (*extend_env(env, var, (AST_NUM var))*) RES_ERROR "Not yet implemented"
 
 (*  Once you have defined interp, you can try out simple examples by
       interp (parsestr "succ (succ 7)"), new_env());
