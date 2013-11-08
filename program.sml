@@ -42,12 +42,10 @@ fun interp (exp, env) =
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
   | AST_IF (exp1, exp2, exp3)   (*=> if interp(exp1,env) then interp(exp2,env) else interp(exp3,env);*)
-								=> let
-									val r1 = interp(exp1, env)
-								   in
-									case r1 of 
-										true => interp(exp2,env)
-										false => interp(exp3,env)
+								=> if interp(exp1, env)
+										then interp(exp2,env)
+										else interp(exp3,env)
+                    | _ => raise RES_ERROR "if condition not bool"
 										
   | AST_APP (exp1, exp2)        => RES_ERROR "Not yet implemented"
   | AST_ID name                 => RES_ERROR "Not yet implemented"
