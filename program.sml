@@ -47,11 +47,14 @@ fun interp (exp, env) =
                                       then interp (exp2, env)
                                     else if v1 = RES_BOOL(false)
                                      then interp (exp3, env)
-                                  else RES_ERROR "no boolean"
-                                end;
- (* | AST_APP (exp1, exp2)        => RES_ERROR *)
+                                  else RES_ERROR "boolean error"
+                                end
+ (*) | AST_APP (exp1, exp2)        => let val r1 = interp(exp1,env)
+                                       val r2 = interp(exp2,env)
+                                      in AST_APP(r1,r2)
+                                      end;             *)                       
 (*  | AST_ID name                 => lookup_env(env, name) *)
-(*  | AST_FUN (var, exp)          => extend_env(env, var, exp) *)
+  | AST_FUN (var, exp)          => RES_FUN(var, exp)
 
 (*  Once you have defined interp, you can try out simple examples by
       interp (parsestr "succ (succ 7)"), new_env());
