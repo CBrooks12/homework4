@@ -49,12 +49,10 @@ fun interp (exp, env) =
                                      then interp (exp3, env)
                                   else RES_ERROR "boolean error"
                                 end
- (*) | AST_APP (exp1, exp2)        => let val r1 = interp(exp1,env)
-                                       val r2 = interp(exp2,env)
-                                      in AST_APP(r1,r2)
-                                      end;             *)                       
-(*  | AST_ID name                 => lookup_env(env, name) *)
+  | AST_APP (exp1, exp2)        => AST_APP(interp(exp1,env),interp(exp2,env))
+  | AST_ID name                 => lookup_env(env, name)
   | AST_FUN (var, exp)          => RES_FUN(var, exp)
+  | AST_REC (var, exp)          => RES_ERROR "not yet implemented"
 
 (*  Once you have defined interp, you can try out simple examples by
       interp (parsestr "succ (succ 7)"), new_env());
