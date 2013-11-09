@@ -55,6 +55,11 @@ fun interp (exp, env) =
                                        val r2 = interp(exp2,env)
                                       in AST_APP(r1,r2)
                                       end; *)			  
+									  (*let val v1 = interp(exp1, env)
+										val v2 = interp(exp2, env)
+										in case v1 of RES_FUN(v2, env) 
+											| RES_ERROR "Not a valid function."
+											[based on notes from tutorial]*)
   | AST_ID name                 => lookup_env(env, name)
  (* | AST_FUN  (var, exp)         => (*extend_env(env, var, (AST_NUM var))*) RES_ERROR "Not yet implemented"*)                     
 (*  | AST_FUN (var, exp)          => RES_FUN(var, exp) *)
