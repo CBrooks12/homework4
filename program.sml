@@ -49,10 +49,22 @@ fun interp (exp, env) =
 									                   		then interp (exp3, env)
 							                 			else RES_ERROR "boolean error"
 								                    end
-(*  | AST_APP (exp1, exp2)        =>  let	val r1 = interp(exp1, env)
-										val r2 = interp(exp2, env)
+  | AST_APP (exp1, exp2)        =>  case (interp(exp1, env), interp(exp2,env)) 
+                                    of
+                                    (AST_ERROR s, AST_ERROR s)    => RES_ERROR s
+                                    | (AST_ERROR s,Env(nil))           => RES_ERROR s
+                                    | (Env(nil), AST_ERROR)          => RES_ERROR s
+                                    | (AST_SUCC, Env(nil))            => RES_ERROR "forgot to add number to SUCC"  
+                                    | (AST_SUCC, AST_NUM x)   => RES_NUM (x+1)
+                                    | (AST_PRED, Env(nil))            => RES_ERROR "forgot to add number to PRED"
+                                    | (AST_PRED, AST_NUM x)   => RES_NUM (x-1)
+                                    | (AST_ISZERO, Env(nil))          => RES_ERROR "forgot number to compare to iszero"
+                                    | (AST_ISZERO, AST_NUM x) => case x=0 of
+                                                                  RES_BOOL(true)    => RES_ISZERO
+                                                                  | RES_BOOL(false) => RES_ERROR "Num is not equal to zero"
+                                    
 										
-										fun eval(RES_SUCC, RES_NUM(n)) = RES_NUM(n+1)
+								(*		fun eval(RES_SUCC, RES_NUM(n)) = RES_NUM(n+1)
 											| eval(RES_PRED, RES_NUM(n)) = 
 												if n = 0 
 												   then RES_NUM(0) 
