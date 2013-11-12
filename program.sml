@@ -14,7 +14,8 @@ datatype result =
   | RES_SUCC
   | RES_PRED
   | RES_ISZERO
-  | RES_FUN   of (string * term);
+  | RES_FUN   of (string * term)
+  | RES_CLOSURE of (string * term * env);  (* We added this *)
 
 (* Here is a basic environment implementation *)
 exception not_found;
@@ -51,19 +52,21 @@ fun interp (exp, env) =
 								                    end
   | AST_APP (exp1, exp2)        =>  case (interp(exp1, env), interp(exp2,env)) 
                                     of
-                                    (AST_ERROR s, AST_ERROR s)    => RES_ERROR s
+                                    (AST_ERROR s, AST_ERROR s)         => RES_ERROR s
                                     | (AST_ERROR s,Env(nil))           => RES_ERROR s
-                                    | (Env(nil), AST_ERROR)          => RES_ERROR s
-                                    | (AST_SUCC, Env(nil))            => RES_ERROR "forgot to add number to SUCC"  
-                                    | (AST_SUCC, AST_NUM x)   => RES_NUM (x+1)
-                                    | (AST_PRED, Env(nil))            => RES_ERROR "forgot to add number to PRED"
-                                    | (AST_PRED, AST_NUM x)   => RES_NUM (x-1)
-                                    | (AST_ISZERO, Env(nil))          => RES_ERROR "forgot number to compare to iszero"
-                                    | (AST_ISZERO, AST_NUM x) => case x=0 of
-                                                                  RES_BOOL(true)    => RES_ISZERO
-                                                                  | RES_BOOL(false) => RES_ERROR "Num is not equal to zero"
-                                    
-										
+                                    | (Env(nil), AST_ERROR)            => RES_ERROR s
+                                    | (AST_SUCC, Env(nil))             => RES_ERROR "forgot to add number to SUCC"  
+                                    | (AST_SUCC, AST_NUM x)            => RES_NUM (x+1)
+                                    | (AST_PRED, Env(nil))             => RES_ERROR "forgot to add number to PRED"
+                                    | (AST_PRED, AST_NUM x)            => RES_NUM (x-1)
+                                    | (AST_ISZERO, Env(nil))           => RES_ERROR "forgot number to compare to iszero"
+                                    | (AST_ISZERO, AST_NUM x)          => case x=0 of
+                                                                          RES_BOOL(true)    => RES_ISZERO
+                                                                        | RES_BOOL(false)   => RES_ERROR "Num is not equal to zero"
+	 | AST_ID name                 => lookup_env(env, name)
+   | AST_FUN (var, exp)          => RES_CLOSURE(var, exp, env)	
+
+
 								(*		fun eval(RES_SUCC, RES_NUM(n)) = RES_NUM(n+1)
 											| eval(RES_PRED, RES_NUM(n)) = 
 												if n = 0 
@@ -87,8 +90,7 @@ fun interp (exp, env) =
 											| RES_ERROR "Not a valid function."
                       end
 											[based on notes from tutorial]*)
-  | AST_ID name                 => lookup_env(env, name)
-  | AST_FUN (var, exp)          => RES_FUN(var, exp)
+
 
 (*  Once you have defined interp, you can try out simple examples by
       interp (parsestr "succ (succ 7)"), new_env());
