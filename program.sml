@@ -11,6 +11,7 @@ datatype result =
     RES_ERROR of string
   | RES_NUM   of int
   | RES_BOOL  of bool
+  | RES_ID 	  of string
   | RES_SUCC
   | RES_PRED
   | RES_ISZERO
@@ -50,21 +51,8 @@ fun interp (exp, env) =
 											then interp (exp3, env)
 										else RES_ERROR "boolean error"
 									end
- (* | AST_APP (exp1, exp2)        =>  case (interp(exp1, env), interp(exp2,env)) 
-                                    of
-                                     (AST_ERROR s, _)           => RES_ERROR s
-                                    | (_, AST_ERROR s)            => RES_ERROR s
-                                    | (AST_SUCC, _)             => RES_ERROR "forgot to add number to SUCC"  
-                                    | (AST_SUCC, AST_NUM x)            => RES_NUM (x+1)
-                                    | (AST_PRED, _)             => RES_ERROR "forgot to add number to PRED"
-                                    | (AST_PRED, AST_NUM x)            => RES_NUM (x-1)
-                                    | (AST_ISZERO, _)           => RES_ERROR "forgot number to compare to iszero"
-                                    | (AST_ISZERO, AST_NUM x)          => if x=0 
-                                                                          then RES_BOOL(true)
-                                                                          else RES_BOOL(false)
-                                    | (AST_FUN(var, exp), AST_NUM x)   => RES_FUN(var, exp) *)
 	| AST_ID name                 => lookup_env(env, name)
-    | AST_FUN (var, exp)          => RES_FUN	(var, exp)
+    | AST_FUN (var, exp)          => RES_FUN(var, exp)
  
 	| AST_APP (exp1, exp2)        =>  case (interp(exp1,env), interp(exp2,env)) of
 										(RES_ERROR s, _) 			=> RES_ERROR s
@@ -75,44 +63,17 @@ fun interp (exp, env) =
 										| (RES_ISZERO, RES_NUM n)  	=> if n = 0
 																		then RES_BOOL(true)
 																		else RES_BOOL(false)
-										| (RES_FUN(x, e)) => let
-																val v1 = interp(exp1, env)
-																val v2 = interp(exp2, env)
-																val newEnv = extend_env(env, x, v2) 
-															in
-																interp(exp1, newEnv)
-															end
-										| (_, _)			=> RES_ERROR "not a valid functional application"
-	
-	
-										(*let val r1 = interp(exp1, env)
-										  val r2 = interp(exp2, env)
-										
-										fun eval(RES_SUCC, RES_NUM(n)) = RES_NUM(n+1)
-											| eval(RES_PRED, RES_NUM(n)) = 
-												if n > 0 
-												   then RES_NUM(n-1) 
-												else RES_NUM 0
-											| eval(RES_ISZERO, RES_NUM(n)) = 
-												if n = 0 
-													then RES_BOOL(true) 
-												else RES_BOOL(false)
-									in
-										eval(r1, r2)
-									end*)
-									
-  (* | AST_APP (exp1, exp2)        => let val r1 = interp(exp1,env)
-                                       val r2 = interp(exp2,env)
-                                      in AST_APP(r1,r2)
-                                      end; *)
-									  
-									  (*let val v1 = interp(exp1, env)
-										val v2 = interp(exp2, env)
-										in case v1 of RES_FUN(v2, env) 
-											| RES_ERROR "Not a valid function."
-                      end
-											[based on notes from tutorial]*)
-
+										| (RES_FUN(x, e), e2) 		=> let  (* e2 is the interpreted version of exp2 *)
+																			val newEnv = extend_env(env, x, e2) 
+																		in
+																			interp(exp1, newEnv)
+																		end
+										| (RES_ID s, e2)			=> let
+																			val newEnv2 = extend_env(env, s, e2)
+																		in
+																			interp(exp1, newEnv2)
+																		end
+										| (_, _)					=> RES_ERROR "not a valid functional application"
 
 (*  Once you have defined interp, you can try out simple examples by
       interp ((parsestr "succ (succ 7)"), new_env());
