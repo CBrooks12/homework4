@@ -53,7 +53,6 @@ fun interp (exp, env) =
 									end
 	| AST_ID name                 => lookup_env(env, name)
     | AST_FUN (var, exp)          => RES_FUN(var, exp)
- 
 	| AST_APP (exp1, exp2)        =>  case (interp(exp1,env), interp(exp2,env)) of
 										(RES_ERROR s, _) 			=> RES_ERROR s
 										| (RES_SUCC, RES_NUM n) 	=> RES_NUM(n+1)  
@@ -68,12 +67,7 @@ fun interp (exp, env) =
 																		in
 																			interp(exp1, newEnv)
 																		end
-										| (RES_ID s, e2)			=> let
-																			val newEnv2 = extend_env(env, s, e2)
-																		in
-																			interp(exp1, newEnv2)
-																		end
-										| (_, _)					=> RES_ERROR "not a valid functional application"
+										| (_, _)			=> RES_ERROR "not a valid functional application"
 
 (*  Once you have defined interp, you can try out simple examples by
       interp ((parsestr "succ (succ 7)"), new_env());

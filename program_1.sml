@@ -30,31 +30,28 @@ fun lookup_env (Env(nil), id) = (print("Free Var!! "^id); raise not_found)
         then value1
 	    else lookup_env(Env(b), id) ;
 
-
-(*  Here's a partial skeleton of interp : (term * environment) -> result.
-    I've done the first case for you
-*)
-fun interp (exp, env) = 
+(* Problem 5 *)		
+fun interp_static(exp, env) = 
 
   case exp of
-    AST_ERROR s                 => RES_ERROR s
+	AST_ERROR s                 => RES_ERROR s
   | AST_NUM  x                  => RES_NUM x 
   | AST_BOOL b                  => RES_BOOL b 
   | AST_SUCC                    => RES_SUCC 
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
-  | AST_IF (exp1, exp2, exp3)   =>  let val v1 = interp (exp1, env)  
+  | AST_IF (exp1, exp2, exp3)   =>  let val v1 = interp_static(exp1, env)  
 									in 
 										if v1 = RES_BOOL(true)
-											then interp (exp2, env)
+											then interp_static(exp2, env)
 										else if v1 = RES_BOOL(false)
-											then interp (exp3, env)
+											then interp_static(exp3, env)
 										else RES_ERROR "boolean error"
 									end
 	| AST_ID name                 => lookup_env(env, name)
-    | AST_FUN (var, exp)          => RES_FUN(var, exp)
- 
-	| AST_APP (exp1, exp2)        =>  case (interp(exp1,env), interp(exp2,env)) of
+	| AST_FUN (var, exp)          => RES_CLOSURE(var, RES_FUN(var, exp), env)
+
+	| AST_APP (exp1, exp2)        =>  case (interp_static(exp1,env), interp_static(exp2,env)) of
 										(RES_ERROR s, _) 			=> RES_ERROR s
 										| (RES_SUCC, RES_NUM n) 	=> RES_NUM(n+1)  
 										| (RES_PRED, RES_NUM n) 	=> if n = 0
@@ -66,12 +63,18 @@ fun interp (exp, env) =
 										| (RES_FUN(x, e), e2) 		=> let  (* e2 is the interpreted version of exp2 *)
 																			val newEnv = extend_env(env, x, e2) 
 																		in
-																			interp(exp1, newEnv)
+																			interp_static(exp1, newEnv)
+																		end
+										| (RES_CLOSURE(var, RES_FUN(x, e), enf), e2) => 
+																		let
+																			val en = extend_env(enf, x, e2)
+																		in
+																			interp_static(exp1, en)
 																		end
 										| (RES_ID s, e2)			=> let
 																			val newEnv2 = extend_env(env, s, e2)
 																		in
-																			interp(exp1, newEnv2)
+																			interp_static(exp1, newEnv2)
 																		end
 										| (_, _)					=> RES_ERROR "not a valid functional application"
 
