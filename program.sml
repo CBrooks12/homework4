@@ -42,14 +42,14 @@ fun interp (exp, env) =
   | AST_SUCC                    => RES_SUCC 
   | AST_PRED                    => RES_PRED 
   | AST_ISZERO                  => RES_ISZERO 
-  | AST_IF (exp1, exp2, exp3)   => let val v1 = interp (exp1, env)  
-								                    in 
-										                if v1 = RES_BOOL(true)
-										                  	then interp (exp2, env)
-								                		else if v1 = RES_BOOL(false)
-									                   		then interp (exp3, env)
-							                 			else RES_ERROR "boolean error"
-								                    end
+  | AST_IF (exp1, exp2, exp3)   =>  let val v1 = interp (exp1, env)  
+									in 
+										if v1 = RES_BOOL(true)
+											then interp (exp2, env)
+										else if v1 = RES_BOOL(false)
+											then interp (exp3, env)
+										else RES_ERROR "boolean error"
+									end
  (* | AST_APP (exp1, exp2)        =>  case (interp(exp1, env), interp(exp2,env)) 
                                     of
                                      (AST_ERROR s, _)           => RES_ERROR s
@@ -66,46 +66,23 @@ fun interp (exp, env) =
 	| AST_ID name                 => lookup_env(env, name)
     | AST_FUN (var, exp)          => RES_FUN	(var, exp)
  
-	| AST_APP (exp1, exp2)        =>  (case exp1 of
-										(AST_ERROR s) 	=> RES_ERROR s
-										| (AST_SUCC) 	=>  (*let val v1 = interp(exp1, env)
-															in
-																if exp2 = AST_NUM x
-																then interp(AST_NUM(x+1), env)
-																else RES_ERROR ("lala")
-															end*)
-															let
-																val v1 = interp(exp1, env)
-																val v2 = interp(exp2, env)
-															in
-																if v2 = RES_NUM x 
-																then RES_NUM(x+1)
-																else RES_ERROR "lalala"
-															end
-										| (AST_PRED) 	=> let
-																val v1 = interp(exp1, env)
-																val v2 = interp(exp2, env)
-															in
-																if v2 = 0
-																then v2
-																else RES_NUM(v2-1)
-															end
-										| (AST_ISZERO)  => let
-																val v1 = interp(exp1, env)
-																val v2 = interp(exp2, env)
-															in
-																if v2 = 0
-																then RES_BOOL(true)
-																else RES_BOOL(false)
-															end
-										| (AST_FUN(x, e)) => let
+	| AST_APP (exp1, exp2)        =>  case (interp(exp1,env), interp(exp2,env)) of
+										(RES_ERROR s, _) 			=> RES_ERROR s
+										| (RES_SUCC, RES_NUM n) 	=> RES_NUM(n+1)  
+										| (RES_PRED, RES_NUM n) 	=> if n = 0
+																		then RES_NUM 0 
+																		else RES_NUM(n-1)
+										| (RES_ISZERO, RES_NUM n)  	=> if n = 0
+																		then RES_BOOL(true)
+																		else RES_BOOL(false)
+										| (RES_FUN(x, e)) => let
 																val v1 = interp(exp1, env)
 																val v2 = interp(exp2, env)
 																val newEnv = extend_env(env, x, v2) 
 															in
 																interp(exp1, newEnv)
 															end
-										| (_)			=> RES_ERROR "not a valid functional application")
+										| (_, _)			=> RES_ERROR "not a valid functional application"
 	
 	
 										(*let val r1 = interp(exp1, env)
